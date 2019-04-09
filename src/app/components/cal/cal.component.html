@@ -1,0 +1,255 @@
+<div class="row text-center">
+  <div class="col-md-4">
+
+<!--       <div
+      class="btn btn-outline-secondary"
+      mwlCalendarToday
+      [(viewDate)]="viewDate"
+      >
+      Today
+   </div> -->
+
+  </div>
+  <div class="col-md-4">
+     <div
+     class="btn btn-info btn-sm"
+     mwlCalendarPreviousView
+     [view]="view"
+     [(viewDate)]="viewDate"
+     (viewDateChange)="closeOpenMonthViewDay()"
+     >
+     <<
+  </div>
+  <strong class="month">{{ viewDate | calendarDate:(view + 'ViewTitle'):'en' }}</strong>
+    <div
+     class="btn btn-info btn-sm"
+     mwlCalendarNextView
+     [view]="view"
+     [(viewDate)]="viewDate"
+     (viewDateChange)="closeOpenMonthViewDay()"
+     >
+     >>
+    </div>
+  </div>
+  <div class="col-md-4 add-right">
+     <button class="btn btn-primary pull-right" (click)="handleEvent('newEntry', '')">
+     + Add
+     </button>
+  </div>
+</div><br/>
+<div class="row">
+   <div class="col-md-6">
+      <div [ngSwitch]="view">
+         <mwl-calendar-month-view
+         *ngSwitchCase="CalendarView.Month"
+         [viewDate]="viewDate"
+         [events]="events"
+         [activeDayIsOpen]="activeDayIsOpen"
+         (dayClicked)="dayClicked($event.day)"
+         (eventTimesChanged)="eventTimesChanged($event)"
+         >
+         </mwl-calendar-month-view>
+      </div>
+   </div>
+   <div class="col-md-6">
+      <ngb-tabset>
+         <ngb-tab title="Today">
+            <ng-template ngbTabContent>
+               <div class="table-responsive">
+                  <table class="table table-bordered">
+                     <thead>
+                        <tr>
+                           <th>Title</th>
+                           <th>Primary color</th>
+                           <th>Starts at</th>
+                           <th>Ends at</th>
+                        </tr>
+                     </thead>
+                     <tbody *ngIf="dayClickedData">
+                        <tr *ngFor="let event of dayClickedData">
+                           <td>{{ event.title }}</td>
+                           <td><input type="color"
+                              [(ngModel)]="event.color.primary"
+                              disabled 
+                              /></td>
+                           <!-- <td [style.background-color]="'event.color'">{{ event.color }}</td> -->
+                           <td>{{ event.start }}</td>
+                           <td>{{ event.end }}</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </ng-template>
+         </ngb-tab>
+         <ngb-tab>
+            <ng-template ngbTabTitle>Edit Events <small>(all)</small></ng-template>
+            <ng-template ngbTabContent>
+               <div class="table-responsive">
+                  <table class="table table-bordered">
+                     <thead>
+                        <tr>
+                           <th>Title</th>
+                           <th>Primary color</th>
+                           <th>Starts at</th>
+                           <th>Ends at</th>
+                           <th>Remove</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr *ngFor="let event of events">
+                           <td>
+                              <input
+                              type="text"
+                              maxlength="30"
+                              class="form-control"
+                              [(ngModel)]="event.title"
+                              />
+                           </td>
+                           <td>
+                              <input
+                              type="color"
+                              [(ngModel)]="event.color.primary"
+                              />
+                           </td>
+                           <td>
+                              <input
+                              class="form-control"
+                              type="text"
+                              mwlFlatpickr
+                              [(ngModel)]="event.start"
+                              [altInput]="true"
+                              [convertModelValue]="true"
+                              [enableTime]="true"
+                              dateFormat="Y-m-dTH:i"
+                              altFormat="F j, Y H:i"
+                              placeholder="Not set"
+                              />
+                           </td>
+                           <td>
+                              <input
+                              class="form-control"
+                              type="text"
+                              mwlFlatpickr
+                              [(ngModel)]="event.end"
+                              [altInput]="true"
+                              [convertModelValue]="true"
+                              [enableTime]="true"
+                              dateFormat="Y-m-dTH:i"
+                              altFormat="F j, Y H:i"
+                              placeholder="Not set"
+                              />
+                           </td>
+                           <td>
+                              <button class="btn btn-danger" (click)="deleteEvent(event)">
+                              Delete
+                              </button>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </ng-template>
+         </ngb-tab>
+      </ngb-tabset>
+   </div>
+   <ng-template #modalContent let-close="close">
+      <div class="modal-header" *ngIf="modalData?.action == 'Edited'">
+         <h5 class="modal-title">Edit Event</h5>
+         <button type="button" class="close" (click)="close()">
+         <span aria-hidden="true">&times;</span>
+         </button>
+      </div>
+      <div class="modal-header" *ngIf="modalData?.action == 'newEntry'">
+         <h5 class="modal-title">Add Event</h5>
+         <button type="button" class="close" (click)="close()">
+         <span aria-hidden="true">&times;</span>
+         </button>
+      </div>
+      <div class="modal-body">
+         <div *ngIf="modalData?.action == 'Edited'">
+            <input
+            type="text"
+            maxlength="30"
+            class="form-control"
+            [(ngModel)]="modalData?.event.title"
+            />
+            <input
+            type="color"
+            [(ngModel)]="modalData?.event.color.primary"
+            />
+            <input
+            class="form-control"
+            type="text"
+            mwlFlatpickr
+            [(ngModel)]="modalData?.event.start"
+            [altInput]="true"
+            [convertModelValue]="true"
+            [enableTime]="true"
+            dateFormat="Y-m-dTH:i"
+            altFormat="F j, Y H:i"
+            placeholder="Not set"
+            />
+            <input
+            class="form-control"
+            type="text"
+            mwlFlatpickr
+            [(ngModel)]="modalData?.event.end"
+            [altInput]="true"
+            [convertModelValue]="true"
+            [enableTime]="true"
+            dateFormat="Y-m-dTH:i"
+            altFormat="F j, Y H:i"
+            placeholder="Not set"
+            />
+
+            <div class="modal-footer">
+               <button type="button" class="btn btn-outline-secondary" (click)="close()">
+               OK
+               </button>
+            </div>
+         </div>
+         <div *ngIf="modalData?.action=='newEntry'">
+            <input
+            type="text"
+            maxlength="30"
+            class="form-control"
+            [(ngModel)]="title"
+            />
+            <input
+            type="color"
+            [(ngModel)]="color"
+            />
+            <input
+            class="form-control"
+            type="text"
+            mwlFlatpickr
+            [(ngModel)]="startDate"
+            [altInput]="true"
+            [convertModelValue]="true"
+            [enableTime]="true"
+            dateFormat="Y-m-dTH:i"
+            altFormat="F j, Y H:i"
+            placeholder="Not set"
+            />
+            <input
+            class="form-control"
+            type="text"
+            mwlFlatpickr
+            [(ngModel)]="endDate"
+            [altInput]="true"
+            [convertModelValue]="true"
+            [enableTime]="true"
+            dateFormat="Y-m-dTH:i"
+            altFormat="F j, Y H:i"
+            placeholder="Not set"
+            />
+            <div class="modal-footer">
+               <button type="button" class="btn btn-outline-secondary" (click)="addEvent(title,color,startDate,endDate)" (click)="close()">
+               OK
+               </button>
+            </div>
+         </div>
+      </div>
+   </ng-template>
+</div>
+
